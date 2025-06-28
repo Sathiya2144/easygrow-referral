@@ -211,6 +211,7 @@ app.post("/admin-login", (req, res) => {
 // Admin panel
 app.get("/admin", async (req, res) => {
   if (!req.session.admin) return res.redirect("/admin-login");
+  
 
   const users = await User.find();
   let html = `
@@ -218,6 +219,7 @@ app.get("/admin", async (req, res) => {
   <html>
   <head>
     <title>Admin - Registered Users</title>
+    <link rel="stylesheet" href="/admin.css">
   </head>
   <body>
     <h1>Registered Users</h1>
