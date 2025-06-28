@@ -12,12 +12,12 @@
   "dependencies": {
     "body-parser": "^2.2.0",
     "cashfree-pg": "^5.0.8",
+    "dotenv": "^17.0.0",
     "express": "^5.1.0",
     "express-session": "^1.18.1",
     "mongodb": "^6.17.0",
     "mongoose": "^8.16.1",
     "nodemailer": "^7.0.3"
   },
-  "devDependencies": {},
   "description": ""
 }
