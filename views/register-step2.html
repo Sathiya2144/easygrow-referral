@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Register - Step 2: Payment</title>
   <style>
     body {
@@ -14,17 +14,18 @@
       flex-direction: column;
       align-items: center;
       min-height: 100vh;
-      justify-content: center;
     }
     h1 {
       color: #007bff;
-      margin-bottom: 15px;
+      margin: 0 0 15px;
       text-align: center;
+      font-size: 24px;
     }
     p {
-      margin: 10px 0;
+      margin: 8px 0;
       text-align: center;
       color: #555;
+      font-size: 15px;
     }
     img {
       margin: 20px 0;
@@ -40,7 +41,7 @@
       border-radius: 8px;
       box-shadow: 0 0 10px rgba(0,0,0,0.1);
       width: 100%;
-      max-width: 350px;
+      max-width: 360px;
       box-sizing: border-box;
     }
     label {
@@ -48,6 +49,7 @@
       margin-top: 12px;
       font-weight: bold;
       color: #333;
+      font-size: 14px;
     }
     input[type="text"] {
       width: 100%;
@@ -77,6 +79,7 @@
     .timer {
       font-weight: bold;
       color: #dc3545;
+      font-size: 16px;
     }
     .back-link {
       margin-top: 20px;
@@ -85,16 +88,23 @@
       color: #007bff;
       text-decoration: none;
       font-weight: 500;
+      font-size: 14px;
     }
     .back-link:hover {
       text-decoration: underline;
     }
-    @media (max-width: 400px) {
+    @media (max-width: 480px) {
       body {
         padding: 10px;
       }
       form {
         padding: 15px;
+      }
+      h1 {
+        font-size: 20px;
+      }
+      button {
+        font-size: 15px;
       }
     }
   </style>
@@ -116,9 +126,9 @@
   </script>
 </head>
 <body>
-  <h1>Register - Step 2: Payment</h1>
-  <p>Please scan this QR code or use the UPI ID to pay <strong>₹500</strong>.</p>
-  <img src="/qr.png" alt="QR Code">
+  <h1>Step 2: Complete Payment</h1>
+  <p>Scan this QR code or use the UPI ID to pay <strong>₹500</strong>.</p>
+  <img src="/qr.png" alt="QR Code for Payment" />
   <p>UPI ID: <strong>sathiya8747-2@oksbi</strong></p>
   <p><strong>Time Remaining:</strong> <span class="timer" id="timer">5:00</span></p>
 
@@ -128,8 +138,8 @@
     <input type="hidden" name="password" value="{{password}}">
     <input type="hidden" name="referrer" value="{{referrer}}">
 
-    <label>Transaction ID (UTR):</label>
-    <input type="text" name="txnId" placeholder="Enter your UTR" required>
+    <label for="txnId">Transaction ID (UTR):</label>
+    <input type="text" id="txnId" name="txnId" placeholder="Enter your UTR" required />
 
     <button type="submit">Submit Payment</button>
   </form>
