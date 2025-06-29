@@ -20,7 +20,6 @@ mongoose
 // Middleware
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, "public")));
-app.use("/downloads", express.static(path.join(__dirname, "public/downloads")));
 
 app.use(
   session({
@@ -30,7 +29,7 @@ app.use(
   })
 );
 
-// Mongoose Schema
+// Mongoose User Schema
 const UserSchema = new mongoose.Schema({
   name: String,
   email: String,
@@ -51,18 +50,23 @@ function generateReferralCode() {
   return Math.floor(100000 + Math.random() * 900000).toString();
 }
 
-// Home
+// Home Page
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "views", "index.html"));
 });
 
-// Registration Step 1
+// Register Step 1
 app.get("/register", (req, res) => {
   res.sendFile(path.join(__dirname, "views", "register-step1.html"));
 });
 
 app.post("/register-step1", (req, res) => {
-  const { name, email, password, referrer } = req.body;
+  const { name, email, password, confirmPassword, referrer } = req.body;
+
+  if (password !== confirmPassword) {
+    return res.send("<h1>Passwords do not match.</h1><p><a href='/register'>Try again</a></p>");
+  }
+
   let html = fs.readFileSync(path.join(__dirname, "views", "register-step2.html"), "utf8");
   html = html
     .replace("{{name}}", name)
@@ -72,9 +76,15 @@ app.post("/register-step1", (req, res) => {
   res.send(html);
 });
 
-// Registration Step 2
+// Register Step 2
 app.post("/register-step2", async (req, res) => {
   const { name, email, password, referrer, txnId } = req.body;
+
+  const existing = await User.findOne({ email });
+  if (existing) {
+    return res.send("<h1>Email already registered.</h1><p><a href='/login'>Login here</a></p>");
+  }
+
   const referralCode = generateReferralCode();
   const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -107,13 +117,11 @@ app.post("/login", async (req, res) => {
   const { email, password } = req.body;
   const user = await User.findOne({ email });
   if (!user || !(await bcrypt.compare(password, user.password))) {
-    return res.send("<h1>Invalid login.</h1><p><a href='/login'>Try again</a></p>");
+    return res.send("<h1>Invalid email or password.</h1><p><a href='/login'>Try again</a></p>");
   }
 
   req.session.email = email;
-
-  // Instead of dashboard, redirect to home or downloads
-  res.redirect("/downloads");
+  res.redirect("/dashboard");
 });
 
 // Profile
@@ -122,38 +130,12 @@ app.get("/profile", async (req, res) => {
   const user = await User.findOne({ email: req.session.email });
   if (!user) return res.redirect("/login");
 
-  let html = `
-  <!DOCTYPE html>
-  <html>
-  <head>
-    <title>Your Profile</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-  </head>
-  <body class="bg-light">
-  <div class="container py-5">
-    <h1 class="mb-4">Your Profile</h1>
-    <form action="/profile" method="POST" class="card p-4">
-      <div class="mb-3">
-        <label class="form-label">Name</label>
-        <input class="form-control" type="text" name="name" value="${user.name}" required>
-      </div>
-      <div class="mb-3">
-        <label class="form-label">Email</label>
-        <input class="form-control" type="email" value="${user.email}" readonly>
-      </div>
-      <div class="mb-3">
-        <label class="form-label">Phone</label>
-        <input class="form-control" type="text" name="phone" value="${user.phone || ""}">
-      </div>
-      <div class="mb-3">
-        <label class="form-label">Address</label>
-        <input class="form-control" type="text" name="address" value="${user.address || ""}">
-      </div>
-      <button class="btn btn-primary w-100">Save Changes</button>
-    </form>
-  </div>
-  </body>
-  </html>`;
+  let html = fs.readFileSync(path.join(__dirname, "views", "profile.html"), "utf8");
+  html = html
+    .replace("{{name}}", user.name)
+    .replace("{{email}}", user.email)
+    .replace("{{phone}}", user.phone || "")
+    .replace("{{address}}", user.address || "");
   res.send(html);
 });
 
@@ -164,20 +146,54 @@ app.post("/profile", async (req, res) => {
   res.redirect("/profile");
 });
 
-// Admin Login
-app.get("/admin-login", (req, res) => {
+// Dashboard
+app.get("/dashboard", async (req, res) => {
+  if (!req.session.email) return res.redirect("/login");
+  const user = await User.findOne({ email: req.session.email });
+  if (!user) return res.redirect("/login");
+
+  const referrals = await User.find({ referrer: user.referralCode });
+  const referralCount = referrals.length;
+
+  const referralListHtml = referrals.length
+    ? `<ul>${referrals.map(ref => `<li>${ref.name} (${ref.email}) - ${ref.paymentStatus}</li>`).join("")}</ul>`
+    : "<p>No referrals yet.</p>";
+
+  let html = fs.readFileSync(path.join(__dirname, "views", "dashboard.html"), "utf8");
+  html = html
+    .replace(/{{name}}/g, user.name)
+    .replace(/{{referralCode}}/g, user.referralCode)
+    .replace(/{{paymentStatus}}/g, user.paymentStatus)
+    .replace(/{{paymentStatusClass}}/g, user.paymentStatus === "Verified" ? "verified" : "pending")
+    .replace(/{{wallet}}/g, user.wallet ?? 0)
+    .replace(/{{referralCount}}/g, referralCount)
+    .replace(/{{registeredAt}}/g, user.createdAt.toLocaleString())
+    .replace(/{{referralList}}/g, referralListHtml);
+  res.send(html);
+});
+
+// QR Generator
+app.get("/qr", (req, res) => {
+  res.sendFile(path.join(__dirname, "views", "qr.html"));
+});
+
+app.post("/qr", async (req, res) => {
+  const text = req.body.text;
+  const qrDataUrl = await QRCode.toDataURL(text);
   res.send(`
-    <h1>Admin Login</h1>
-    <form action="/admin-login" method="POST">
-      <input type="password" name="password" placeholder="Admin Password" required />
-      <button type="submit">Login</button>
-    </form>
+    <h1>QR Code</h1>
+    <img src="${qrDataUrl}" alt="QR Code">
+    <p><a href="/qr">Generate Another</a></p>
   `);
 });
 
+// Admin Login
+app.get("/admin-login", (req, res) => {
+  res.sendFile(path.join(__dirname, "views", "admin-login.html"));
+});
+
 app.post("/admin-login", (req, res) => {
-  const { password } = req.body;
-  if (password === "admin123") {
+  if (req.body.password === "admin1234") {
     req.session.admin = true;
     return res.redirect("/admin");
   }
@@ -187,49 +203,33 @@ app.post("/admin-login", (req, res) => {
 app.get("/admin", async (req, res) => {
   if (!req.session.admin) return res.redirect("/admin-login");
   const users = await User.find();
-  let html = `
-  <!DOCTYPE html>
-  <html><head>
-    <title>Admin - Registered Users</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-  </head>
-  <body class="bg-light">
-  <div class="container py-4">
-    <h1 class="mb-4">Registered Users</h1>
-    <table class="table table-bordered table-hover">
-      <thead><tr>
-        <th>Name</th><th>Email</th><th>Referrer</th><th>Referral Code</th>
-        <th>Transaction ID</th><th>Payment Status</th><th>Wallet</th><th>Registered At</th><th>Actions</th>
-      </tr></thead><tbody>`;
-  users.forEach(u => {
-    html += `
+  let html = fs.readFileSync(path.join(__dirname, "views", "admin.html"), "utf8");
+
+  let tableRows = users.map(u => `
     <tr>
       <td>${u.name}</td>
       <td>${u.email}</td>
-      <td>${u.referrer || "None"}</td>
       <td>${u.referralCode}</td>
-      <td>${u.txnId || "Not Provided"}</td>
-      <td>${u.paymentStatus}</td>
       <td>${u.wallet ?? 0}</td>
-      <td>${u.createdAt.toLocaleString()}</td>
+      <td>${u.paymentStatus}</td>
       <td>
-        ${u.paymentStatus !== "Verified" ? `
-        <form action="/verify-payment" method="POST" class="d-inline">
+        ${u.paymentStatus !== "Verified" ? `<form action="/verify-payment" method="POST" style="display:inline">
           <input type="hidden" name="id" value="${u._id}">
-          <button class="btn btn-sm btn-success">Verify</button>
+          <button class="btn btn-success btn-sm">Verify</button>
         </form>` : ""}
-        <form action="/reset-password" method="POST" class="d-inline">
+        <form action="/reset-password" method="POST" style="display:inline">
           <input type="hidden" name="id" value="${u._id}">
-          <button class="btn btn-sm btn-warning">Reset</button>
+          <button class="btn btn-warning btn-sm">Reset</button>
         </form>
-        <form action="/delete-user" method="POST" class="d-inline" onsubmit="return confirm('Delete this user?');">
+        <form action="/delete-user" method="POST" style="display:inline" onsubmit="return confirm('Delete this user?');">
           <input type="hidden" name="id" value="${u._id}">
-          <button class="btn btn-sm btn-danger">Delete</button>
+          <button class="btn btn-danger btn-sm">Delete</button>
         </form>
       </td>
-    </tr>`;
-  });
-  html += `</tbody></table><a href="/admin-logout">Logout</a></div></body></html>`;
+    </tr>
+  `).join("");
+
+  html = html.replace("{{tableRows}}", tableRows);
   res.send(html);
 });
 
@@ -254,38 +254,6 @@ app.get("/admin-logout", (req, res) => {
   res.redirect("/admin-login");
 });
 
-// QR Generator
-app.get("/qr", (req, res) => {
-  const html = `
-  <h1>QR Code Generator</h1>
-  <form action="/qr" method="POST">
-    <input type="text" name="text" placeholder="Enter text or URL" required>
-    <button>Generate</button>
-  </form>`;
-  res.send(html);
-});
-
-app.post("/qr", async (req, res) => {
-  const text = req.body.text;
-  const qrDataUrl = await QRCode.toDataURL(text);
-  res.send(`<h1>QR Code</h1><img src="${qrDataUrl}"><a href="/qr">Generate Another</a>`);
-});
-
-// Downloads Hub
-app.get("/downloads", (req, res) => {
-  const files = [
-    { name: "Resume Template", file: "modern-resume.pdf", desc: "Professional resume" },
-    { name: "Budget Planner", file: "budget-planner.xlsx", desc: "Simple Excel planner" },
-    { name: "Study Timetable", file: "study-timetable.pdf", desc: "Plan study schedule" },
-  ];
-  let html = `<h1>Download Hub</h1><ul>`;
-  files.forEach(f => {
-    html += `<li><a href="/downloads/${f.file}" download>${f.name}</a> - ${f.desc}</li>`;
-  });
-  html += `</ul>`;
-  res.send(html);
-});
-
-// Start
+// Start server
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`🚀 Server running on http://localhost:${PORT}`));

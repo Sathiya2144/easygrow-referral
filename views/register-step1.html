@@ -4,69 +4,7 @@
   <meta charset="UTF-8">
   <title>Register - Step 1</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <style>
-    body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: #f2f6fa;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      margin: 0;
-    }
-    .form-box {
-      background: white;
-      padding: 30px;
-      border-radius: 8px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
-      width: 90%;
-      max-width: 350px;
-    }
-    h1 {
-      text-align: center;
-      margin-bottom: 20px;
-      color: #007bff;
-    }
-    label {
-      display: block;
-      margin-top: 10px;
-      font-weight: bold;
-    }
-    input {
-      width: 100%;
-      padding: 10px;
-      margin-top: 5px;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-    }
-    button {
-      width: 100%;
-      padding: 12px;
-      background: #007bff;
-      border: none;
-      color: white;
-      font-size: 16px;
-      border-radius: 4px;
-      cursor: pointer;
-      margin-top: 20px;
-    }
-    button:hover {
-      background: #0056b3;
-    }
-    .links {
-      text-align: center;
-      margin-top: 15px;
-    }
-    .links a {
-      color: #007bff;
-      text-decoration: none;
-      display: block;
-      margin-top: 5px;
-    }
-    .links a:hover {
-      text-decoration: underline;
-    }
-  </style>
+  <link rel="stylesheet" href="/css/register-step1.css">
 </head>
 <body>
   <div class="form-box">
@@ -74,14 +12,19 @@
     <form action="/register-step1" method="POST">
       <label>Name</label>
       <input type="text" name="name" placeholder="Your full name" required>
+      
       <label>Email</label>
       <input type="email" name="email" placeholder="you@example.com" required>
+      
       <label>Password</label>
       <input type="password" name="password" placeholder="Enter password" required>
+      
       <label>Re-enter Password</label>
       <input type="password" name="confirmPassword" placeholder="Confirm password" required>
+      
       <label>Referral Code (Optional)</label>
       <input type="text" name="referrer" placeholder="Referral code if any">
+      
       <button type="submit">Next Step</button>
     </form>
     <div class="links">

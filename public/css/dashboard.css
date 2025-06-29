@@ -1,0 +1,75 @@
+body {
+  font-family: Arial, sans-serif;
+  background: #f2f6fa;
+  margin: 0;
+  padding: 0;
+  color: #333;
+}
+header {
+  background: #007bff;
+  color: white;
+  padding: 20px;
+  text-align: center;
+}
+.container {
+  max-width: 900px;
+  margin: 20px auto;
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+.stats {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-around;
+  gap: 15px;
+  margin-top: 20px;
+}
+.card {
+  flex: 1 1 150px;
+  background: #f8f9fa;
+  padding: 15px;
+  border-radius: 6px;
+  text-align: center;
+  box-shadow: 0 0 5px rgba(0,0,0,0.05);
+}
+.card h2 {
+  margin: 0;
+  color: #007bff;
+}
+.referral-box {
+  margin-top: 20px;
+  background: #e9f5ff;
+  padding: 15px;
+  border: 1px dashed #007bff;
+  border-radius: 6px;
+  text-align: center;
+}
+.referral-code {
+  font-size: 20px;
+  font-weight: bold;
+  color: #007bff;
+}
+.status {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 14px;
+  margin-top: 10px;
+}
+.verified {
+  background: #28a745;
+  color: white;
+}
+.pending {
+  background: #ffc107;
+  color: #333;
+}
+.referral-list {
+  margin-top: 20px;
+  text-align: left;
+}
+.referral-list ul {
+  padding-left: 20px;
+}

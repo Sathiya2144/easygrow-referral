@@ -1,0 +1,94 @@
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: #f1f8ff;
+}
+.container {
+  padding-top: 40px;
+}
+h1 {
+  color: #007bff;
+  font-size: 36px;
+  font-weight: 600;
+  margin-bottom: 30px;
+  text-align: center;
+}
+.table {
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+th {
+  background: #4CAF50;
+  color: white;
+  text-align: center;
+}
+td {
+  text-align: center;
+  padding: 10px;
+  font-size: 14px;
+  border-top: 1px solid #ddd;
+}
+td a {
+  color: #007bff;
+  text-decoration: none;
+  font-weight: bold;
+}
+td a:hover {
+  text-decoration: underline;
+}
+.table td form button {
+  margin: 0 5px;
+  padding: 6px 10px;
+  font-size: 12px;
+  border-radius: 4px;
+}
+.table td .btn-success {
+  background: #28a745;
+  color: white;
+}
+.table td .btn-warning {
+  background: #ffc107;
+  color: white;
+}
+.table td .btn-danger {
+  background: #dc3545;
+  color: white;
+}
+.btn {
+  text-decoration: none;
+  color: white;
+  border: none;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 10px 20px;
+  border-radius: 5px;
+}
+.btn-secondary {
+  background: #6c757d;
+}
+.btn-secondary:hover {
+  background: #5a6268;
+}
+.btn-success:hover {
+  background: #218838;
+}
+.btn-warning:hover {
+  background: #e0a800;
+}
+.btn-danger:hover {
+  background: #c82333;
+}
+.footer {
+  text-align: center;
+  margin-top: 20px;
+  font-size: 14px;
+  color: #777;
+}
+.footer a {
+  color: #007bff;
+  text-decoration: none;
+}
+.footer a:hover {
+  text-decoration: underline;
+}
