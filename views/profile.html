@@ -2,28 +2,31 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Edit Profile</title>
+  <title>Your Profile</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
     body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      font-family: Arial, sans-serif;
       background: #f2f6fa;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
       margin: 0;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
     }
     .form-box {
       background: white;
-      padding: 30px;
+      padding: 25px;
       border-radius: 8px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
-      width: 350px;
+      box-shadow: 0 0 8px rgba(0,0,0,0.1);
+      width: 90%;
+      max-width: 400px;
     }
     h1 {
       text-align: center;
-      margin-bottom: 20px;
       color: #007bff;
+      margin-bottom: 20px;
     }
     label {
       display: block;
@@ -55,18 +58,17 @@
 </head>
 <body>
   <div class="form-box">
-    <h1>Edit Profile</h1>
+    <h1>Your Profile</h1>
     <form action="/profile" method="POST">
       <label>Name</label>
       <input type="text" name="name" value="{{name}}" required>
-
       <label>Email</label>
-      <input type="email" name="email" value="{{email}}" required>
-
-      <label>Password</label>
-      <input type="password" name="password" value="{{password}}" required>
-
-      <button type="submit">Update Profile</button>
+      <input type="email" value="{{email}}" readonly>
+      <label>Phone</label>
+      <input type="text" name="phone" value="{{phone}}">
+      <label>Address</label>
+      <input type="text" name="address" value="{{address}}">
+      <button type="submit">Save Changes</button>
     </form>
   </div>
 </body>

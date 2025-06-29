@@ -1,105 +1,69 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8" />
-  <title>Dashboard - EasyGrow</title>
-  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+  <meta charset="UTF-8">
+  <title>Member Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
     body {
+      font-family: Arial, sans-serif;
+      background: #f2f6fa;
       margin: 0;
-      font-family: 'Roboto', sans-serif;
-      background: #f0f2f5;
+      padding: 0;
       color: #333;
     }
     header {
-      background: #4A90E2;
+      background: #007bff;
       color: white;
-      padding: 30px 20px;
+      padding: 20px;
       text-align: center;
-    }
-    header h1 {
-      margin: 0;
-      font-size: 26px;
     }
     .container {
       max-width: 900px;
-      margin: 30px auto;
+      margin: 20px auto;
       background: white;
-      padding: 30px;
+      padding: 20px;
       border-radius: 8px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
     }
     .stats {
       display: flex;
-      gap: 20px;
       flex-wrap: wrap;
-      margin-bottom: 30px;
-      justify-content: space-between;
-    }
-    .card {
-      flex: 1 1 200px;
-      background: #f7f9fb;
-      border-radius: 8px;
-      padding: 20px;
-      text-align: center;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-    }
-    .card h2 {
-      font-size: 28px;
-      color: #4A90E2;
-      margin: 10px 0 5px;
-    }
-    .card p {
-      color: #666;
-      margin: 0;
-    }
-    .referral-box {
-      background: #e6f0fa;
-      border: 1px dashed #4A90E2;
-      padding: 20px;
-      border-radius: 6px;
-      text-align: center;
-      margin-bottom: 20px;
-    }
-    .referral-code {
-      font-size: 22px;
-      font-weight: bold;
-      color: #4A90E2;
-      margin: 10px 0;
-    }
-    .copy-btn {
-      background: #4A90E2;
-      color: white;
-      border: none;
-      padding: 8px 14px;
-      font-size: 14px;
-      border-radius: 4px;
-      cursor: pointer;
-    }
-    .copy-btn:hover {
-      background: #357ABD;
-    }
-    .referrals-list {
+      justify-content: space-around;
+      gap: 15px;
       margin-top: 20px;
     }
-    .referrals-list ul {
-      list-style: none;
-      padding: 0;
+    .card {
+      flex: 1 1 150px;
+      background: #f8f9fa;
+      padding: 15px;
+      border-radius: 6px;
+      text-align: center;
+      box-shadow: 0 0 5px rgba(0,0,0,0.05);
     }
-    .referrals-list li {
-      background: #f7f9fb;
-      border: 1px solid #ddd;
-      margin-bottom: 8px;
-      padding: 10px;
-      border-radius: 4px;
-      font-size: 14px;
+    .card h2 {
+      margin: 0;
+      color: #007bff;
+    }
+    .referral-box {
+      margin-top: 20px;
+      background: #e9f5ff;
+      padding: 15px;
+      border: 1px dashed #007bff;
+      border-radius: 6px;
+      text-align: center;
+    }
+    .referral-code {
+      font-size: 20px;
+      font-weight: bold;
+      color: #007bff;
     }
     .status {
       display: inline-block;
-      padding: 5px 12px;
+      padding: 4px 10px;
       border-radius: 12px;
-      font-size: 13px;
-      margin-top: 5px;
+      font-size: 14px;
+      margin-top: 10px;
     }
     .verified {
       background: #28a745;
@@ -109,58 +73,78 @@
       background: #ffc107;
       color: #333;
     }
-    .logout {
-      display: inline-block;
+    .referral-list {
       margin-top: 20px;
-      color: #4A90E2;
-      text-decoration: none;
-      font-weight: 500;
+      text-align: left;
     }
-    .logout:hover {
-      text-decoration: underline;
+    .referral-list ul {
+      padding-left: 20px;
+    }
+    @media(max-width:600px) {
+      .stats {
+        flex-direction: column;
+      }
     }
   </style>
-  <script>
-    function copyReferral() {
-      const code = document.getElementById("refCode").textContent;
-      navigator.clipboard.writeText(code).then(() => {
-        alert("Referral code copied!");
-      });
-    }
-  </script>
 </head>
 <body>
   <header>
     <h1>Welcome, {{name}}</h1>
   </header>
   <div class="container">
-    <h2>Your Account Details</h2>
+    <h2>Your Account</h2>
     <div class="stats">
       <div class="card">
         <h2>{{referralCount}}</h2>
         <p>Referrals</p>
       </div>
       <div class="card">
-        <h2>Status</h2>
-        <span class="status {{paymentStatusClass}}">{{paymentStatus}}</span>
+        <h2>{{paymentStatus}}</h2>
+        <p>Payment Status</p>
+      </div>
+      <div class="card">
+        <h2>$ {{wallet}}</h2>
+        <p>Wallet Balance</p>
       </div>
     </div>
-
     <div class="referral-box">
-      <p>Share your referral code to earn more:</p>
-      <div class="referral-code" id="refCode">{{referralCode}}</div>
-      <button class="copy-btn" onclick="copyReferral()">Copy Code</button>
+      <p>Share your referral code:</p>
+      <div class="referral-code">{{referralCode}}</div>
     </div>
+    <div style="margin-top:20px;">
+  <label>Your Referral Link:</label>
+  <div style="display:flex;flex-wrap:wrap;gap:8px;">
+    <input 
+      type="text" 
+      id="referralLink" 
+      value="https://yourdomain.com/register?referrer={{referralCode}}" 
+      readonly 
+      style="flex:1;padding:8px;border:1px solid #ccc;border-radius:4px;"
+    >
+    <button 
+      onclick="copyReferralLink()"
+      style="padding:8px 12px;background:#007bff;color:white;border:none;border-radius:4px;cursor:pointer;"
+    >
+      Copy
+    </button>
+  </div>
+</div>
+<script>
+  function copyReferralLink() {
+    const linkInput = document.getElementById('referralLink');
+    linkInput.select();
+    linkInput.setSelectionRange(0, 99999);
+    document.execCommand('copy');
+    alert('Referral link copied!');
+  }
+</script>
 
     <p><strong>Registered At:</strong> {{registeredAt}}</p>
-
-    <div class="referrals-list">
-      <h3>Your Referrals</h3>
+    <span class="status {{paymentStatusClass}}">{{paymentStatus}}</span>
+    <div class="referral-list">
+      <h3>Your Referrals:</h3>
       {{referralList}}
     </div>
-
-    <a href="/logout" class="logout">Logout</a>
-    <a href="/profile" style="margin-left:10px;">Edit Profile</a>
   </div>
 </body>
 </html>

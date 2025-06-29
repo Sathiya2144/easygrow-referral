@@ -4,30 +4,31 @@ const bodyParser = require("body-parser");
 const path = require("path");
 const fs = require("fs");
 const session = require("express-session");
+const QRCode = require("qrcode");
+const bcrypt = require("bcrypt");
 
-// Load environment variables
 require("dotenv").config();
 
 const app = express();
 
-// Connect to MongoDB
-mongoose.connect(process.env.MONGO_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-})
+// MongoDB Connection
+mongoose
+  .connect(process.env.MONGO_URI)
   .then(() => console.log("✅ MongoDB connected"))
   .catch((err) => console.error("❌ MongoDB connection error:", err));
 
 // Middleware
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, "public")));
+app.use("/downloads", express.static(path.join(__dirname, "public/downloads")));
 
-// Sessions
-app.use(session({
-  secret: process.env.SESSION_SECRET || "fallbackSecret",
-  resave: false,
-  saveUninitialized: true,
-}));
+app.use(
+  session({
+    secret: process.env.SESSION_SECRET || "fallbackSecret",
+    resave: false,
+    saveUninitialized: true,
+  })
+);
 
 // Mongoose Schema
 const UserSchema = new mongoose.Schema({
@@ -43,7 +44,6 @@ const UserSchema = new mongoose.Schema({
   phone: String,
   address: String,
 });
-
 const User = mongoose.model("User", UserSchema);
 
 // Generate numeric referral code
@@ -51,7 +51,7 @@ function generateReferralCode() {
   return Math.floor(100000 + Math.random() * 900000).toString();
 }
 
-// Home page
+// Home
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "views", "index.html"));
 });
@@ -63,7 +63,6 @@ app.get("/register", (req, res) => {
 
 app.post("/register-step1", (req, res) => {
   const { name, email, password, referrer } = req.body;
-
   let html = fs.readFileSync(path.join(__dirname, "views", "register-step2.html"), "utf8");
   html = html
     .replace("{{name}}", name)
@@ -77,18 +76,18 @@ app.post("/register-step1", (req, res) => {
 app.post("/register-step2", async (req, res) => {
   const { name, email, password, referrer, txnId } = req.body;
   const referralCode = generateReferralCode();
+  const hashedPassword = await bcrypt.hash(password, 10);
 
   const newUser = new User({
     name,
     email,
-    password,
+    password: hashedPassword,
     referrer,
     txnId,
     referralCode,
   });
   await newUser.save();
 
-  // Credit referrer's wallet
   if (referrer) {
     await User.findOneAndUpdate(
       { referralCode: referrer },
@@ -99,95 +98,73 @@ app.post("/register-step2", async (req, res) => {
   res.sendFile(path.join(__dirname, "views", "success.html"));
 });
 
-// Login page
+// Login
 app.get("/login", (req, res) => {
   res.sendFile(path.join(__dirname, "views", "login.html"));
 });
 
-// Login and dashboard
 app.post("/login", async (req, res) => {
   const { email, password } = req.body;
-
-  const user = await User.findOne({ email, password });
-  if (!user) {
-    return res.send("<h1>Invalid login details.</h1><p><a href='/login'>Try again</a></p>");
+  const user = await User.findOne({ email });
+  if (!user || !(await bcrypt.compare(password, user.password))) {
+    return res.send("<h1>Invalid login.</h1><p><a href='/login'>Try again</a></p>");
   }
 
   req.session.email = email;
 
-  const referrals = await User.find({ referrer: user.referralCode });
-  const referralCount = referrals.length;
-
-  const referralListHtml = referrals.length
-    ? `<ul>${referrals.map(ref => `<li>${ref.name} (${ref.email}) - ${ref.paymentStatus}</li>`).join("")}</ul>`
-    : "<p>No referrals yet.</p>";
-
-  let html = fs.readFileSync(path.join(__dirname, "views", "dashboard.html"), "utf8");
-  html = html
-    .replace(/{{name}}/g, user.name)
-    .replace(/{{referralCode}}/g, user.referralCode)
-    .replace(/{{paymentStatus}}/g, user.paymentStatus)
-    .replace(/{{paymentStatusClass}}/g, user.paymentStatus === "Verified" ? "verified" : "pending")
-    .replace(/{{referralCount}}/g, referralCount)
-    .replace(/{{registeredAt}}/g, user.createdAt.toLocaleString())
-    .replace(/{{referralList}}/g, referralListHtml);
-
-  res.send(html);
+  // Instead of dashboard, redirect to home or downloads
+  res.redirect("/downloads");
 });
 
-// Profile Page
+// Profile
 app.get("/profile", async (req, res) => {
-  if (!req.session.email) {
-    return res.redirect("/login");
-  }
-
+  if (!req.session.email) return res.redirect("/login");
   const user = await User.findOne({ email: req.session.email });
-  if (!user) {
-    return res.redirect("/login");
-  }
+  if (!user) return res.redirect("/login");
 
   let html = `
   <!DOCTYPE html>
   <html>
   <head>
     <title>Your Profile</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   </head>
-  <body>
-    <div>
-      <h1>Your Profile</h1>
-      <form action="/profile" method="POST">
-        <label>Name</label>
-        <input type="text" name="name" value="${user.name}" required>
-        <label>Email</label>
-        <input type="email" value="${user.email}" readonly>
-        <label>Phone</label>
-        <input type="text" name="phone" value="${user.phone || ""}">
-        <label>Address</label>
-        <input type="text" name="address" value="${user.address || ""}">
-        <button type="submit">Save Changes</button>
-      </form>
-    </div>
+  <body class="bg-light">
+  <div class="container py-5">
+    <h1 class="mb-4">Your Profile</h1>
+    <form action="/profile" method="POST" class="card p-4">
+      <div class="mb-3">
+        <label class="form-label">Name</label>
+        <input class="form-control" type="text" name="name" value="${user.name}" required>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Email</label>
+        <input class="form-control" type="email" value="${user.email}" readonly>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Phone</label>
+        <input class="form-control" type="text" name="phone" value="${user.phone || ""}">
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Address</label>
+        <input class="form-control" type="text" name="address" value="${user.address || ""}">
+      </div>
+      <button class="btn btn-primary w-100">Save Changes</button>
+    </form>
+  </div>
   </body>
-  </html>
-  `;
+  </html>`;
   res.send(html);
 });
 
-// Profile Update POST
 app.post("/profile", async (req, res) => {
   if (!req.session.email) return res.redirect("/login");
-
   const { name, phone, address } = req.body;
-
-  await User.findOneAndUpdate(
-    { email: req.session.email },
-    { name, phone, address }
-  );
-
+  await User.findOneAndUpdate({ email: req.session.email }, { name, phone, address });
   res.redirect("/profile");
 });
 
-// Admin login page
+// Admin Login
 app.get("/admin-login", (req, res) => {
   res.send(`
     <h1>Admin Login</h1>
@@ -198,7 +175,6 @@ app.get("/admin-login", (req, res) => {
   `);
 });
 
-// Handle admin login
 app.post("/admin-login", (req, res) => {
   const { password } = req.body;
   if (password === "admin123") {
@@ -208,35 +184,23 @@ app.post("/admin-login", (req, res) => {
   res.send("<h1>Incorrect admin password.</h1><p><a href='/admin-login'>Try again</a></p>");
 });
 
-// Admin panel
 app.get("/admin", async (req, res) => {
   if (!req.session.admin) return res.redirect("/admin-login");
-  
-
   const users = await User.find();
   let html = `
   <!DOCTYPE html>
-  <html>
-  <head>
+  <html><head>
     <title>Admin - Registered Users</title>
-    <link rel="stylesheet" href="/admin.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   </head>
-  <body>
-    <h1>Registered Users</h1>
-    <table border="1">
-      <tr>
-        <th>Name</th>
-        <th>Email</th>
-        <th>Referrer</th>
-        <th>Referral Code</th>
-        <th>Transaction ID</th>
-        <th>Payment Status</th>
-        <th>Wallet</th>
-        <th>Registered At</th>
-        <th>Actions</th>
-      </tr>
-  `;
-
+  <body class="bg-light">
+  <div class="container py-4">
+    <h1 class="mb-4">Registered Users</h1>
+    <table class="table table-bordered table-hover">
+      <thead><tr>
+        <th>Name</th><th>Email</th><th>Referrer</th><th>Referral Code</th>
+        <th>Transaction ID</th><th>Payment Status</th><th>Wallet</th><th>Registered At</th><th>Actions</th>
+      </tr></thead><tbody>`;
   users.forEach(u => {
     html += `
     <tr>
@@ -246,58 +210,82 @@ app.get("/admin", async (req, res) => {
       <td>${u.referralCode}</td>
       <td>${u.txnId || "Not Provided"}</td>
       <td>${u.paymentStatus}</td>
-      <td>${u.wallet}</td>
+      <td>${u.wallet ?? 0}</td>
       <td>${u.createdAt.toLocaleString()}</td>
       <td>
         ${u.paymentStatus !== "Verified" ? `
-        <form action="/verify-payment" method="POST" style="display:inline">
+        <form action="/verify-payment" method="POST" class="d-inline">
           <input type="hidden" name="id" value="${u._id}">
-          <button type="submit">Mark Verified</button>
+          <button class="btn btn-sm btn-success">Verify</button>
         </form>` : ""}
-        <form action="/reset-password" method="POST" style="display:inline">
+        <form action="/reset-password" method="POST" class="d-inline">
           <input type="hidden" name="id" value="${u._id}">
-          <button type="submit">Reset Password</button>
+          <button class="btn btn-sm btn-warning">Reset</button>
         </form>
-        <form action="/delete-user" method="POST" style="display:inline" onsubmit="return confirm('Delete this user?');">
+        <form action="/delete-user" method="POST" class="d-inline" onsubmit="return confirm('Delete this user?');">
           <input type="hidden" name="id" value="${u._id}">
-          <button type="submit">Delete</button>
+          <button class="btn btn-sm btn-danger">Delete</button>
         </form>
       </td>
-    </tr>
-    `;
+    </tr>`;
   });
-
-  html += `</table><a href="/admin-logout">Logout</a></body></html>`;
+  html += `</tbody></table><a href="/admin-logout">Logout</a></div></body></html>`;
   res.send(html);
 });
 
-// Mark payment verified
 app.post("/verify-payment", async (req, res) => {
-  const { id } = req.body;
-  await User.findByIdAndUpdate(id, { paymentStatus: "Verified" });
+  await User.findByIdAndUpdate(req.body.id, { paymentStatus: "Verified" });
   res.redirect("/admin");
 });
 
-// Reset password to "123456"
 app.post("/reset-password", async (req, res) => {
-  const { id } = req.body;
-  await User.findByIdAndUpdate(id, { password: "123456" });
+  const hashedPassword = await bcrypt.hash("123456", 10);
+  await User.findByIdAndUpdate(req.body.id, { password: hashedPassword });
   res.redirect("/admin");
 });
 
-// Delete user
 app.post("/delete-user", async (req, res) => {
-  const { id } = req.body;
-  await User.findByIdAndDelete(id);
+  await User.findByIdAndDelete(req.body.id);
   res.redirect("/admin");
 });
 
-// Admin logout
 app.get("/admin-logout", (req, res) => {
   req.session.destroy();
   res.redirect("/admin-login");
 });
 
-// Start server
-const PORT = 3000;
+// QR Generator
+app.get("/qr", (req, res) => {
+  const html = `
+  <h1>QR Code Generator</h1>
+  <form action="/qr" method="POST">
+    <input type="text" name="text" placeholder="Enter text or URL" required>
+    <button>Generate</button>
+  </form>`;
+  res.send(html);
+});
+
+app.post("/qr", async (req, res) => {
+  const text = req.body.text;
+  const qrDataUrl = await QRCode.toDataURL(text);
+  res.send(`<h1>QR Code</h1><img src="${qrDataUrl}"><a href="/qr">Generate Another</a>`);
+});
+
+// Downloads Hub
+app.get("/downloads", (req, res) => {
+  const files = [
+    { name: "Resume Template", file: "modern-resume.pdf", desc: "Professional resume" },
+    { name: "Budget Planner", file: "budget-planner.xlsx", desc: "Simple Excel planner" },
+    { name: "Study Timetable", file: "study-timetable.pdf", desc: "Plan study schedule" },
+  ];
+  let html = `<h1>Download Hub</h1><ul>`;
+  files.forEach(f => {
+    html += `<li><a href="/downloads/${f.file}" download>${f.name}</a> - ${f.desc}</li>`;
+  });
+  html += `</ul>`;
+  res.send(html);
+});
+
+// Start
+const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`🚀 Server running on http://localhost:${PORT}`));

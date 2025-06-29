@@ -1,14 +1,15 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Register - Step 2: Payment</title>
   <style>
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       background: #f2f6fa;
       margin: 0;
-      padding: 0;
+      padding: 20px;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -17,48 +18,58 @@
     }
     h1 {
       color: #007bff;
-      margin-bottom: 20px;
+      margin-bottom: 15px;
+      text-align: center;
     }
     p {
       margin: 10px 0;
       text-align: center;
+      color: #555;
     }
     img {
       margin: 20px 0;
       border: 1px solid #ddd;
       padding: 10px;
       background: #fff;
+      max-width: 90%;
+      height: auto;
     }
     form {
-      background: white;
+      background: #fff;
       padding: 20px;
       border-radius: 8px;
       box-shadow: 0 0 10px rgba(0,0,0,0.1);
-      width: 300px;
-      text-align: left;
+      width: 100%;
+      max-width: 350px;
+      box-sizing: border-box;
     }
     label {
       display: block;
-      margin-top: 10px;
+      margin-top: 12px;
       font-weight: bold;
+      color: #333;
     }
     input[type="text"] {
       width: 100%;
-      padding: 8px;
-      margin-top: 5px;
+      padding: 10px;
+      margin-top: 6px;
       border: 1px solid #ccc;
       border-radius: 4px;
+      font-size: 14px;
+      box-sizing: border-box;
     }
     button {
       width: 100%;
       padding: 12px;
       background: #28a745;
       border: none;
-      color: white;
+      color: #fff;
       font-size: 16px;
+      font-weight: 500;
       border-radius: 4px;
       cursor: pointer;
       margin-top: 20px;
+      transition: background 0.3s;
     }
     button:hover {
       background: #218838;
@@ -68,14 +79,23 @@
       color: #dc3545;
     }
     .back-link {
-      margin-top: 15px;
+      margin-top: 20px;
       display: block;
       text-align: center;
       color: #007bff;
       text-decoration: none;
+      font-weight: 500;
     }
     .back-link:hover {
       text-decoration: underline;
+    }
+    @media (max-width: 400px) {
+      body {
+        padding: 10px;
+      }
+      form {
+        padding: 15px;
+      }
     }
   </style>
   <script>
@@ -97,8 +117,8 @@
 </head>
 <body>
   <h1>Register - Step 2: Payment</h1>
-  <p>Please scan this QR code or use the UPI ID to pay ₹500.</p>
-  <img src="/qr.png" alt="QR Code" width="200">
+  <p>Please scan this QR code or use the UPI ID to pay <strong>₹500</strong>.</p>
+  <img src="/qr.png" alt="QR Code">
   <p>UPI ID: <strong>sathiya8747-2@oksbi</strong></p>
   <p><strong>Time Remaining:</strong> <span class="timer" id="timer">5:00</span></p>
 
@@ -107,13 +127,13 @@
     <input type="hidden" name="email" value="{{email}}">
     <input type="hidden" name="password" value="{{password}}">
     <input type="hidden" name="referrer" value="{{referrer}}">
-    
+
     <label>Transaction ID (UTR):</label>
-    <input type="text" name="txnId" required>
-    
+    <input type="text" name="txnId" placeholder="Enter your UTR" required>
+
     <button type="submit">Submit Payment</button>
   </form>
 
-  <a href="/" class="back-link">Back to Home</a>
+  <a href="/" class="back-link">← Back to Home</a>
 </body>
 </html>

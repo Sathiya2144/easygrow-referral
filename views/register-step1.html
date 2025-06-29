@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>Register - Step 1</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -18,7 +19,8 @@
       padding: 30px;
       border-radius: 8px;
       box-shadow: 0 0 10px rgba(0,0,0,0.1);
-      width: 350px;
+      width: 90%;
+      max-width: 350px;
     }
     h1 {
       text-align: center;
@@ -72,19 +74,14 @@
     <form action="/register-step1" method="POST">
       <label>Name</label>
       <input type="text" name="name" placeholder="Your full name" required>
-
       <label>Email</label>
       <input type="email" name="email" placeholder="you@example.com" required>
-
       <label>Password</label>
       <input type="password" name="password" placeholder="Enter password" required>
-
       <label>Re-enter Password</label>
       <input type="password" name="confirmPassword" placeholder="Confirm password" required>
-
       <label>Referral Code (Optional)</label>
       <input type="text" name="referrer" placeholder="Referral code if any">
-
       <button type="submit">Next Step</button>
     </form>
     <div class="links">
