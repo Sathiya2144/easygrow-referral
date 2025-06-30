@@ -205,29 +205,31 @@ app.get("/admin", async (req, res) => {
   const users = await User.find();
   let html = fs.readFileSync(path.join(__dirname, "views", "admin.html"), "utf8");
 
-  let tableRows = users.map(u => `
-    <tr>
-      <td>${u.name}</td>
-      <td>${u.email}</td>
-      <td>${u.referralCode}</td>
-      <td>${u.wallet ?? 0}</td>
-      <td>${u.paymentStatus}</td>
-      <td>
-        ${u.paymentStatus !== "Verified" ? `<form action="/verify-payment" method="POST" style="display:inline">
-          <input type="hidden" name="id" value="${u._id}">
-          <button class="btn btn-success btn-sm">Verify</button>
-        </form>` : ""}
-        <form action="/reset-password" method="POST" style="display:inline">
-          <input type="hidden" name="id" value="${u._id}">
-          <button class="btn btn-warning btn-sm">Reset</button>
-        </form>
-        <form action="/delete-user" method="POST" style="display:inline" onsubmit="return confirm('Delete this user?');">
-          <input type="hidden" name="id" value="${u._id}">
-          <button class="btn btn-danger btn-sm">Delete</button>
-        </form>
-      </td>
-    </tr>
-  `).join("");
+let tableRows = users.map(u => `
+  <tr>
+    <td>${u.name}</td>
+    <td>${u.email}</td>
+    <td>${u.referralCode}</td>
+    <td>${u.txnId || "Not Provided"}</td>
+    <td>${u.wallet ?? 0}</td>
+    <td>${u.paymentStatus}</td>
+    <td>
+      ${u.paymentStatus !== "Verified" ? `<form action="/verify-payment" method="POST" style="display:inline">
+        <input type="hidden" name="id" value="${u._id}">
+        <button class="btn btn-success btn-sm">Verify</button>
+      </form>` : ""}
+      <form action="/reset-password" method="POST" style="display:inline">
+        <input type="hidden" name="id" value="${u._id}">
+        <button class="btn btn-warning btn-sm">Reset</button>
+      </form>
+      <form action="/delete-user" method="POST" style="display:inline" onsubmit="return confirm('Delete this user?');">
+        <input type="hidden" name="id" value="${u._id}">
+        <button class="btn btn-danger btn-sm">Delete</button>
+      </form>
+    </td>
+  </tr>
+`).join("");
+
 
   html = html.replace("{{tableRows}}", tableRows);
   res.send(html);
